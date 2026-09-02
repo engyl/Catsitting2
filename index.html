@@ -562,6 +562,7 @@ document.getElementById('btn-create-vo').addEventListener('click', function(){
   document.getElementById('vo-name-input').value = '';
   document.getElementById('vo-addr-input').value = '';
   renderVOSelect();
+  renderVOTabs();
   selectVO(vo.id);
   showToast('Visit Order created!','success');
 });
@@ -651,16 +652,35 @@ document.getElementById('log-form').addEventListener('submit', function(e){
   showToast('Visit log saved!','success');
 });
 
+// RENDER VO FILTER TABS (Saved Visit Logs section)
+function renderVOTabs() {
+  var wrap = document.getElementById('vo-tabs');
+  if (!wrap) return;
+  var html = '<button type="button" class="vo-tab'+(activeTab==='all' ? ' active' : '')+'" data-tab="all">All</button>';
+  visitOrders.forEach(function(vo){
+    html += '<button type="button" class="vo-tab'+(activeTab===vo.id ? ' active' : '')+'" data-tab="'+vo.id+'">'+vo.name+'</button>';
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.vo-tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      activeTab = this.getAttribute('data-tab');
+      renderVOTabs();
+      renderLogsTable();
+    });
+  });
+}
+
 function renderLogsTable() {
   var tbody = document.getElementById('tbody');
-  if (!logs.length) {
+  var filteredLogs = activeTab === 'all' ? logs : logs.filter(function(l){ return l.voId === activeTab; });
+  if (!filteredLogs.length) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--muted)">No logs recorded yet.</td></tr>';
     return;
   }
   var html = '';
-  logs.slice().reverse().forEach(function(r, i){
+  filteredLogs.slice().reverse().forEach(function(r, i){
     html += '<tr>';
-    html += '<td>'+(logs.length-i)+'</td>';
+    html += '<td>'+(filteredLogs.length-i)+'</td>';
     html += '<td><strong>'+r.voName+'</strong></td>';
     html += '<td>'+r.arrival+'</td>';
     html += '<td>'+r.departure+'</td>';
@@ -743,6 +763,7 @@ document.getElementById('btn-clr').addEventListener('click', function(){
 window.addEventListener('DOMContentLoaded', function(){
   loadData();
   renderVOSelect();
+  renderVOTabs();
   renderLogsTable();
 });
 </script>
